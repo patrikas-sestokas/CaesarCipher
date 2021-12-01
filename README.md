@@ -42,13 +42,15 @@ For example if data was encrypted with `{shift}` of `5` - it can be decrypted wi
 
   ```The quick brown fox jumps over the lazy dog.```
 
-  Running it through the tool: ```CaesarCipher -7 data.txt encrypted.txt```.
+  Running it through the tool: ```CaesarCipher -7 data.txt encrypted.txt```
 
   Will create a file `encrypted.txt` in the same directory as executable with obviously garbled content:
 
   ```Ma^↓jnb\d↓[khpg↓_hq↓cnfil↓ho^k↓ma^↓eZsr↓]h`'```
 
-  Running encrypted file through the tool with inverted `{shift}` like so: ```CaesarCipher 7 encrypted.txt decrypted.txt```.
+  Running encrypted file through the tool with inverted `{shift}` like so: 
+  
+  ```CaesarCipher 7 encrypted.txt decrypted.txt```
 
   Will result in file `decrypted.txt` with content:
 
