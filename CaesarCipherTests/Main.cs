@@ -61,7 +61,7 @@ namespace CaesarCipherTests
         [MemberData(nameof(GenerateData))]
         public void RuntimeFileTests(string shift, string input, string output)
         {
-            var md5 = MD5.Create();
+            using var md5 = MD5.Create();
             var inputFile = File.Open(input, FileMode.Open, FileAccess.Read);
             var sourceHash = md5.ComputeHash(inputFile);
             inputFile.Close();

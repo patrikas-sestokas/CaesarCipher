@@ -18,11 +18,10 @@ namespace CaesarCipher
     {
         public const string StandardInputIdentifier = "-";
         public const string StandardOutputIdentifier = "-";
-        static readonly string Help = "Either \"help\" for showing what you are seeing now or:\n" +
-                                      "{shift} {input} {output}\n" +
-                                      "  {shift} - the amount by which to shift bytes of input.\n" +
-                                      $" {{input}} - either file path or {StandardInputIdentifier} specifying standard input.\n" +
-                                      $" {{output}} - either file path or {StandardOutputIdentifier} specifying standard output.";
+        static readonly string Help = "{shift} {input} {output}\n" +
+                                      "    {shift} - the amount by which to shift bytes of input.\n" +
+                                      $"    {{input}} - either file path or {StandardInputIdentifier} specifying standard input.\n" +
+                                      $"    {{output}} - either file path or {StandardOutputIdentifier} specifying standard output.";
         public static int Main(string[] args)
         {
             //In case of erroneous user input there is little need to specify which pieces of code caused it.
@@ -49,8 +48,8 @@ namespace CaesarCipher
             input.Close();
             output.Close();
             //Standard error because standard output could be piped to another process.
-            Console.Error.WriteLine($"Successfully shifted all bytes of {(args[1] == StandardInputIdentifier ? "stdin" : args[1])}" +
-                                    $" by {args[0]} and wrote the result to {(args[2] == StandardOutputIdentifier ? "stdout" : args[2])}.");
+            /*Console.Error.WriteLine($"\nSuccessfully shifted all bytes of {(args[1] == StandardInputIdentifier ? "stdin" : args[1])}" +
+                                    $" by {args[0]} and wrote the result to {(args[2] == StandardOutputIdentifier ? "stdout" : args[2])}.");*/
             return 0;
         }
         public enum StreamType : byte
