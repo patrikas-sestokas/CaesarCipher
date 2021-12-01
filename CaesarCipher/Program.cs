@@ -1,109 +1,123 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace CaesarCipher
 {
-    static class Program
+    public enum FailureType
     {
-        const string DecryptIdentifier = "decrypt";
-        const string EncryptIdentifier = "encrypt";
-        static int Main(string[] args)
+        WrongNumberOfArguments = 1,
+        IOError = 2,
+        FailedToParse = 3
+    }
+    //To differentiate user input errors from others.
+    public class ConsoleException : Exception
+    {
+        public ConsoleException(string message, FailureType type) : base(message) => HResult = (int)type;
+    }
+    public static class Program
+    {
+        public const string StandardInputIdentifier = "-";
+        public const string StandardOutputIdentifier = "-";
+        static readonly string Help = "Either \"help\" for showing what you are seeing now or:\n" +
+                                      "{shift} {input} {output}\n" +
+                                      "  {shift} - the amount by which to shift bytes of input.\n" +
+                                      $" {{input}} - either file path or {StandardInputIdentifier} specifying standard input.\n" +
+                                      $" {{output}} - either file path or {StandardOutputIdentifier} specifying standard output.";
+        public static int Main(string[] args)
         {
-            if (args.Length == 0)
+            //In case of erroneous user input there is little need to specify which pieces of code caused it.
+            AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
             {
-                Console.Error.WriteLine("Not enough arguments. The operation mode must be specified.");
-                Environment.Exit(1);
-            }
-            var operationMode = args[0];
-            var parameters = args[1..];
-            if (parameters.Length != 3)
+                if (eventArgs.ExceptionObject is not ConsoleException exception)
+                    throw (Exception)eventArgs.ExceptionObject;
+                Console.Error.WriteLine(exception.Message);
+                Environment.Exit(exception.HResult);
+            };
+            if (args.Length == 1 && args[0] == "help")
             {
-                Console.Error.WriteLine("There are 3 required parameters:\n" +
-                                        "{operation identifier}\n" +
-                                        "{input}\n" +
-                                        "{output}\n" +
-                                        "{shift}\n" +
-                                        $". Got {string.Join('\n', parameters)} of length {parameters.Length} instead.");
-                Environment.Exit(2);
+                Console.WriteLine(Help);
+                return 0;
             }
-            Stream input = CreateStream(parameters[0], StreamType.Input),
-                output = CreateStream(parameters[1], StreamType.Output);
-            var key = ReadShift(parameters[2]);
-            switch (operationMode)
-            {
-                case EncryptIdentifier:
-                    Transform(input, output, key, OperationType.Encryption);
-                    break;
-                case DecryptIdentifier:
-                    Transform(input, output, key, OperationType.Decryption);
-                    break;
-                default:
-                    Console.Error.WriteLine($"Unknown operation mode \"{operationMode}\".\n" +
-                                            "Known operation modes:\n" +
-                                            $"{EncryptIdentifier} - Encrypts input stream or file.\n" +
-                                            $"{DecryptIdentifier} - Decrypts input stream or file.");
-                    Environment.Exit(3);
-                    break;
-            }
+            if (args.Length != 3)
+                throw new ConsoleException($"Usage instructions:\n{Help}\n" +
+                                           $"Got \"{string.Join(' ', args)}\" of length {args.Length} instead.",
+                    FailureType.WrongNumberOfArguments);
+            var shift = ReadShift(args[0]);
+            Stream input = OpenStream(args[1], StreamType.Input),
+                output = OpenStream(args[2], StreamType.Output);
+            Transform(input, output, shift);
             input.Close();
             output.Close();
+            //Standard error because standard output could be piped to another process.
+            Console.Error.WriteLine($"Successfully shifted all bytes of {(args[1] == StandardInputIdentifier ? "stdin" : args[1])}" +
+                                    $" by {args[0]} and wrote the result to {(args[2] == StandardOutputIdentifier ? "stdout" : args[2])}.");
             return 0;
         }
-        enum StreamType : byte
+        public enum StreamType : byte
         {
             Input = 0,
             Output = 1
         }
-        static Stream CreateStream(string parameter, StreamType type)
+        /// <summary>
+        /// Attempts to open user provided argument as either file or stream.
+        /// </summary>
+        /// <param name="parameter">User input.</param>
+        /// <param name="type">Internally provided type.</param>
+        /// <returns>Stream of file or stdin/stdout.</returns>
+        /// <exception cref="ArgumentException">In case of wrong internally provided byte.</exception>
+        /// <exception cref="ConsoleException">In case of failure when opening or creating stream.</exception>
+        public static Stream OpenStream(string parameter, StreamType type)
         {
             try
             {
                 return type switch
                 {
-                    StreamType.Input => parameter == "-" ? Console.OpenStandardInput() : File.OpenRead(parameter),
-                    StreamType.Output => parameter == "-" ? Console.OpenStandardOutput() : File.Create(parameter),
+                    StreamType.Input => parameter == StandardInputIdentifier ? 
+                        Console.OpenStandardInput() : File.OpenRead(parameter),
+                    StreamType.Output => parameter == StandardOutputIdentifier ? 
+                        Console.OpenStandardOutput() : File.Create(parameter),
+                    //As stream type is provided internally, it should never be wrong. If it is - failure is expected.
                     _ => throw new ArgumentException($"Unknown stream type \"{type}\".")
                 };
             }
             catch(Exception exception)
             {
-                Console.Error.WriteLine($"Problems opening provided " +
-                                        $"{type switch { StreamType.Input => "input", StreamType.Output => "output", _ => ""}} " +
-                                        $"file \"{parameter}\":\n" + exception);
-                Environment.Exit(4);
-                return null;
+                throw new ConsoleException("Problems opening provided " +
+                                           $"{type switch { StreamType.Input => "input", StreamType.Output => "output", _ => "" }} " +
+                                           $"file \"{parameter}\":\n" + exception.Message, FailureType.IOError);
             }
         }
-        enum OperationType : byte
-        {
-            Encryption = 0,
-            Decryption = 1
-        }
-        static void Transform(Stream input, Stream output, byte shift, OperationType type)
+        /// <summary>
+        /// Shifts all bytes of input by shift and writes them to output.
+        /// If any of the streams fail while being used - catastrophic failure is expected.
+        /// </summary>
+        /// <param name="input">Input stream.</param>
+        /// <param name="output">Output stream.</param>
+        /// <param name="shift">The amount by which to shift bytes.</param>
+        public static void Transform(Stream input, Stream output, int shift)
         {
             var buffer = new byte[64 * 1024];
             int read;
-            Func<byte, byte, byte> operation = type switch
-            {
-                OperationType.Encryption => (x, offset) => unchecked(x += offset),
-                OperationType.Decryption => (x, offset) => unchecked(x -= offset),
-                _ => throw new ArgumentException($"Unknown operation type \"{type}\".")
-            };
             while ((read = input.Read(buffer)) != 0)
             {
                 for (var i = 0; i < read; i++)
-                    buffer[i] = operation(buffer[i], shift);
+                    //Unchecked context allows overflows and underflows to not throw exceptions.
+                    //Overflow and underflow are both expected and in this case - useful as they eliminate the need for modulus operator.
+                    buffer[i] = unchecked((byte)(buffer[i] + shift));
                 output.Write(buffer, 0, read);
             }
         }
-        static byte ReadShift(string parameter)
+        /// <summary>
+        /// Reads user provided shift and attempts to parse it.
+        /// </summary>
+        /// <param name="parameter">User input</param>
+        /// <returns>Parsed integer</returns>
+        /// <exception cref="ConsoleException">In case of failed parsing attempt</exception>
+        public static int ReadShift(string parameter)
         {
-            var success = byte.TryParse(parameter, out var shift);
+            var success = int.TryParse(parameter, out var shift);
             if (success) return shift;
-            Console.Error.WriteLine($"Failed to parse \"{parameter}\" as byte.");
-            Environment.Exit(5);
-            return default;
+            throw new ConsoleException($"Failed to parse \"{parameter}\" as an integer.", FailureType.FailedToParse);
         }
     }
 }
