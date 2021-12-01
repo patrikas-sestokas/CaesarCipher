@@ -64,7 +64,7 @@ namespace CaesarCipher
         /// <param name="parameter">User input.</param>
         /// <param name="type">Internally provided type.</param>
         /// <returns>Stream of file or stdin/stdout.</returns>
-        /// <exception cref="ArgumentException">In case of wrong internally provided byte.</exception>
+        /// <exception cref="ArgumentException">In case of wrong internally provided type.</exception>
         /// <exception cref="ConsoleException">In case of failure when opening or creating stream.</exception>
         public static Stream OpenStream(string parameter, StreamType type)
         {
@@ -72,14 +72,22 @@ namespace CaesarCipher
             {
                 return type switch
                 {
-                    StreamType.Input => parameter == StandardInputIdentifier ? 
-                        Console.OpenStandardInput() : File.OpenRead(parameter),
-                    StreamType.Output => parameter == StandardOutputIdentifier ? 
-                        Console.OpenStandardOutput() : File.Create(parameter),
+                    StreamType.Input => parameter == StandardInputIdentifier
+                        ? Console.OpenStandardInput()
+                        : new FileStream(parameter, FileMode.Open, FileAccess.Read, FileShare.Read),
+                    StreamType.Output => parameter == StandardOutputIdentifier
+                        ? Console.OpenStandardOutput()
+                        : new FileStream(parameter, FileMode.Create, FileAccess.Write, FileShare.Read),
                     //As stream type is provided internally, it should never be wrong. If it is - failure is expected.
                     _ => throw new ArgumentException($"Unknown stream type \"{type}\".")
                 };
             }
+            //Exception thrown by wrong internally provided argument should be handled separately than one arising from user input.
+            catch (ArgumentException)
+            {
+                throw;
+            }
+            //Way too many different types of exceptions could be thrown in this context leading to unfortunate necessity to generalize.
             catch(Exception exception)
             {
                 throw new ConsoleException("Problems opening provided " +
