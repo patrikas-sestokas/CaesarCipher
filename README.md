@@ -75,4 +75,4 @@ For example if data was encrypted with `{shift}` of `5` - it can be decrypted wi
   
 ## Known behavior
 - `{output}` files are overwritten.
-- Launching tool with input method as standard input like so ```CaesarCipher 5 - -``` will result in application waiting for said input. Forever, if necessary. 
+- Launching tool with input method as standard input like so ```CaesarCipher 5 - -``` and then not providing said input will result in application waiting. Forever, if necessary. 
