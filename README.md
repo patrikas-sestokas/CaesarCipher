@@ -27,9 +27,9 @@ Command line interface only accepts either 1 or 3 commands - `help` or `{shift} 
 
 ⚠️ **If `{output}` file already exists - it will rewritten!**
 
-To decrypt previously encrypted data simply pass `{shift}` with inverted sign. 
+To decrypt previously encrypted data - calculate `26 - {shift}` and use value in place of `{shift}`. 
 
-For example if data was encrypted with `{shift}` of `5` - it can be decrypted with `-5`.
+For example if data was encrypted with `{shift}` of `5` - it can be decrypted with `{21}` as 26 - 5 = 21.
 
 ## Usage examples
 - #### Using no files and `{shift}` of "5":
