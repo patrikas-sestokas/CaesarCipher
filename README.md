@@ -11,6 +11,11 @@ This command line tool provides capability to shift all bytes of provided input 
 - Both of the listed IDEs have been confirmed to work:
   - Microsoft Visual Studio 2019
   - JetBrains Rider
+  
+## Unit testing results
+
+Refer to:
+[Unit Testing Result README.md](./CaesarCipherTests/README.md)
 
 ## Usage
 
