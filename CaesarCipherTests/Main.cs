@@ -33,7 +33,7 @@ namespace CaesarCipherTests
         // Application hanging when it's expecting data from stdin and nothing being provided is expected behavior.
         [Theory]
         [InlineData("10", Program.StandardInputIdentifier, Program.StandardOutputIdentifier)]
-        [InlineData("-10", Program.StandardInputIdentifier, "SomeFile")]
+        [InlineData("20", Program.StandardInputIdentifier, "SomeFile")]
         public async Task HangingTest(string shift, string input, string output)
         {
             var application = Task.Run(() => Program.Main(new[] { shift, input, output }));
@@ -51,7 +51,7 @@ namespace CaesarCipherTests
                 rng.NextBytes(buffer);
                 stream.Write(buffer);
                 stream.Close();
-                yield return new object[] { rng.Next(int.MinValue, int.MaxValue), file, Path.GetRandomFileName() };
+                yield return new object[] { rng.Next(1, 26), file, Path.GetRandomFileName() };
             }
         }
         /// <summary>
@@ -70,8 +70,9 @@ namespace CaesarCipherTests
             var resultHash = md5.ComputeHash(outputFile);
             outputFile.Close();
             Assert.NotEqual(sourceHash, resultHash);
+
             
-            Program.Main(new[] { (-int.Parse(shift)).ToString(), output, input });
+            Program.Main(new[] { (26 - int.Parse(shift)).ToString(), output, input });
             inputFile = File.Open(input, FileMode.Open, FileAccess.Read);
             var decryptedFileHash = md5.ComputeHash(inputFile);
             inputFile.Close();

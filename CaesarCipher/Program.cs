@@ -7,7 +7,8 @@ namespace CaesarCipher
     {
         WrongNumberOfArguments = 1,
         IOError = 2,
-        FailedToParse = 3
+        FailedToParse = 3,
+        ShiftNotWithinRange = 4
     }
     //To differentiate user input errors from others.
     public class ConsoleException : Exception
@@ -18,8 +19,8 @@ namespace CaesarCipher
     {
         public const string StandardInputIdentifier = "-";
         public const string StandardOutputIdentifier = "-";
-        static readonly string Help = "{shift} {input} {output}\n" +
-                                      "    {shift} - the amount by which to shift bytes of input.\n" +
+        static readonly string Help = "{shift} {input} {output} {mode}\n" +
+                                      "    {shift} - the amount in range [1, 25] by which to shift bytes of input.\n" +
                                       $"    {{input}} - either file path or {StandardInputIdentifier} specifying standard input.\n" +
                                       $"    {{output}} - either file path or {StandardOutputIdentifier} specifying standard output.";
         public static int Main(string[] args)
@@ -108,9 +109,14 @@ namespace CaesarCipher
             while ((read = input.Read(buffer)) != 0)
             {
                 for (var i = 0; i < read; i++)
-                    //Unchecked context allows overflows and underflows to not throw exceptions.
-                    //Overflow and underflow are both expected and in this case - useful as they eliminate the need for modulus operator.
-                    buffer[i] = unchecked((byte)(buffer[i] + shift));
+                    buffer[i] = buffer[i] switch
+                    {
+                        //Unchecked context allows overflows and underflows to not throw exceptions.
+                        //Also boosts performance for larger files.
+                        > 64 and < 91 => unchecked((byte)((buffer[i] + shift - 65) % 26 + 65)),
+                        > 96 and < 123 => unchecked((byte)((buffer[i] + shift - 97) % 26 + 97)),
+                        _ => buffer[i]
+                    };
                 output.Write(buffer, 0, read);
             }
         }
@@ -120,11 +126,14 @@ namespace CaesarCipher
         /// <param name="parameter">User input</param>
         /// <returns>Parsed integer</returns>
         /// <exception cref="ConsoleException">In case of failed parsing attempt</exception>
-        public static int ReadShift(string parameter)
+        public static byte ReadShift(string parameter)
         {
-            var success = int.TryParse(parameter, out var shift);
-            if (success) return shift;
-            throw new ConsoleException($"Failed to parse \"{parameter}\" as an integer.", FailureType.FailedToParse);
+            var success = byte.TryParse(parameter, out var shift);
+            if (!success)
+                throw new ConsoleException($"Failed to parse \"{parameter}\" as a byte.", FailureType.FailedToParse);
+            if (shift is < 1 or > 25)
+                throw new ConsoleException($"Shift must be in [1, 25] range!", FailureType.ShiftNotWithinRange);
+            return shift;
         }
     }
 }

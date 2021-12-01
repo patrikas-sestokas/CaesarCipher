@@ -20,7 +20,7 @@ namespace CaesarCipherTests
                 rng.NextBytes(buffer);
                 input.Write(buffer);
                 input.Seek(0, SeekOrigin.Begin);
-                yield return new object[] { input, rng.Next(int.MinValue, int.MaxValue) };
+                yield return new object[] { input, rng.Next(1, 26) };
             }
         }
         /// <summary>
@@ -45,7 +45,7 @@ namespace CaesarCipherTests
             
             output.Seek(0, SeekOrigin.Begin);
             input.Seek(0, SeekOrigin.Begin);
-            task = Task.Run(() => Program.Transform(output, input, -shift));
+            task = Task.Run(() => Program.Transform(output, input, 26 - shift));
             var decryptedDataHash = md5.ComputeHash(input);
             task.Wait();
             //Decrypting encrypted data should result in hash identical to the hash of source data.

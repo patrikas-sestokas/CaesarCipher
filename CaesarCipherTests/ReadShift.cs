@@ -15,6 +15,8 @@ namespace CaesarCipherTests
         [InlineData("Hello")]
         [InlineData("2147483648")] // int.MaxValue + 1
         [InlineData("-2147483649")] // int.MinValue - 1
+        [InlineData("0")]
+        [InlineData("26")]
         public void ReadShiftWrongInputThrowsConsoleException(string input)
         {
             Assert.Throws<ConsoleException>(() => Program.ReadShift(input));
