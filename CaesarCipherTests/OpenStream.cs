@@ -9,7 +9,7 @@ namespace CaesarCipherTests
     public class OpenStream
     {
         /// <summary>
-        /// Tests if correct type of exception is thrown from wrong internal argument.
+        ///     Tests if correct type of exception is thrown from wrong internal argument.
         /// </summary>
         /// <param name="type"></param>
         [Theory]
@@ -22,10 +22,10 @@ namespace CaesarCipherTests
         public static IEnumerable<object[]> RandomNonExistentFiles()
         {
             for (var i = 0; i < 5; ++i)
-                yield return new object[]{Guid.NewGuid().ToString()};
+                yield return new object[] { Guid.NewGuid().ToString() };
         }
         /// <summary>
-        /// Checks if non existent source file throws the expected ConsoleException exception type.
+        ///     Checks if non existent source file throws the expected ConsoleException exception type.
         /// </summary>
         /// <param name="parameter">Source file path</param>
         [Theory]
@@ -48,16 +48,15 @@ namespace CaesarCipherTests
                 stream.Close();
                 yield return new object[]
                 {
-                    new FileStream(stream.Name, FileMode.Open, FileAccess.Read, 
-                        type is Program.StreamType.Input ? 
-                            accessible ? FileShare.Read : FileShare.Write : 
-                            accessible ? FileShare.Write : FileShare.Read), 
+                    new FileStream(stream.Name, FileMode.Open, FileAccess.Read,
+                        type is Program.StreamType.Input ? accessible ? FileShare.Read : FileShare.Write :
+                        accessible ? FileShare.Write : FileShare.Read),
                     type
                 };
             }
         }
         /// <summary>
-        /// Checks if non-accessible files cause the expected ConsoleException type to be thrown.
+        ///     Checks if non-accessible files cause the expected ConsoleException type to be thrown.
         /// </summary>
         /// <param name="stream">Generated file stream.</param>
         /// <param name="type">Type of stream.</param>

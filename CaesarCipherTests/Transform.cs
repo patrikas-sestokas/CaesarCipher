@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using System.Text;
 using CaesarCipher;
 using Xunit;
 
@@ -24,9 +25,9 @@ namespace CaesarCipherTests
             }
         }
         /// <summary>
-        /// Compares hashes of encrypted and source data.
-        /// <para>1.Encrypts data and compares hashes of encrypted data and source data - they should NOT be equal.</para>
-        /// <para>2.Decrypts encrypted data and compares hashes of decrypted data and source data - they should be equal.</para>
+        ///     Compares hashes of encrypted and source data.
+        ///     <para>1.Encrypts data and compares hashes of encrypted data and source data - they should NOT be equal.</para>
+        ///     <para>2.Decrypts encrypted data and compares hashes of decrypted data and source data - they should be equal.</para>
         /// </summary>
         /// <param name="input">Data input stream</param>
         /// <param name="shift"></param>
@@ -42,7 +43,7 @@ namespace CaesarCipherTests
             task.Wait();
             //Encrypted data should not have the same hash as source data.
             Assert.NotEqual(sourceHash, encryptedDataHash);
-            
+
             output.Seek(0, SeekOrigin.Begin);
             input.Seek(0, SeekOrigin.Begin);
             task = Task.Run(() => Program.Transform(output, input, 26 - shift));

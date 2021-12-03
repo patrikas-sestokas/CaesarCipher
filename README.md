@@ -29,19 +29,19 @@ Command line interface only accepts either 1 or 3 commands - `help` or `{shift} 
 
 To decrypt previously encrypted data - calculate `26 - {shift}` and use value in place of `{shift}`. 
 
-For example if data was encrypted with `{shift}` of `5` - it can be decrypted with `{21}` as 26 - 5 = 21.
+For example if data was encrypted with `{shift}` of `5` - it can be decrypted with `21` as 26 - 5 = 21.
 
 ## Usage examples
-- #### Using no files and `{shift}` of "5":
+- #### Using no files and `{shift}` of "5" with decryption shift being "21":
   ```echo Hello World! | CaesarCipher 5 - -``` which results in `Mjqqt Btwqi!`.
   
-  Passing said output into the tool again with inverted `{shift}` like so:
+  Passing said output into the tool again with decryption `{shift}` like so:
 
   ```echo Hello World! | CaesarCipher 5 - - | CaesarCipher 21 - -```
 
   Results in `Hello World!`.
 
-- #### Using files and `{shift}` of "7":
+- #### Using files and `{shift}` of "7" with decryption shift being "19":
 
   For example file `data.txt` in the same directory as the executable contains:
 
@@ -53,7 +53,7 @@ For example if data was encrypted with `{shift}` of `5` - it can be decrypted wi
 
   ```Aol xbpjr iyvdu mve qbtwz vcly aol shgf kvn.```
 
-  Running encrypted file through the tool with inverted `{shift}` like so: 
+  Running encrypted file through the tool with decryption `{shift}` like so: 
   
   ```CaesarCipher 19 encrypted.txt decrypted.txt```
 
